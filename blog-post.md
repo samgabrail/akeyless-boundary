@@ -1,4 +1,4 @@
-# Akeyless Modern PAM vs. HashiCorp Boundary: Simplifying Secure Remote Access for the Enterprise
+# Akeyless Modern PAM vs. HashiCorp Boundary: Why Unified Beats Fragmented
 
 ## Introduction
 
@@ -23,6 +23,45 @@ HashiCorp Boundary is an identity-aware proxy designed to broker connections bet
 - **Boundary Enterprise**  - Self-managed with commercial features
 
 For organizations evaluating Boundary, it's essential to understand that many enterprise-critical features -including credential injection (passwordless access) and session recording -are **only available in the paid HCP or Enterprise editions**.
+
+### Boundary's Domain Model: Hosts vs. Targets
+
+To understand what Boundary can and cannot do, it helps to understand its core concepts:
+
+- **Host**: A computing element with a network address -an actual server, VM, or container that Boundary can reach
+- **Host Set**: A collection of hosts treated as equivalent for access control purposes
+- **Host Catalog**: A container for hosts and host sets, which can be static (manually configured) or dynamic (auto-discovered from cloud providers)
+- **Target**: The access point users connect to -defines the protocol (TCP, SSH, or RDP), port, and permissions
+
+Boundary supports three target types:
+| Target Type | Description | Credential Support |
+|-------------|-------------|-------------------|
+| **TCP** | General-purpose for any TCP service | Brokered credentials only |
+| **SSH** | SSH connections with session recording | Requires injected credentials |
+| **RDP** | Windows Remote Desktop (Enterprise only) | Requires injected credentials |
+
+### What Boundary's Cloud Integration Actually Means
+
+A common misconception: Boundary's AWS, Azure, and GCP support does **not** provide access to cloud management consoles (AWS Console, Azure Portal, GCP Console). Those are web-based UIs with their own authentication systems.
+
+**What it actually does:** Boundary's cloud integration enables *dynamic host catalogs* -automatic discovery of VMs and servers running in those clouds. When you tag an EC2 instance or Azure VM, Boundary can automatically add it to a host catalog and keep that catalog updated as infrastructure changes.
+
+```
+Cloud Provider (AWS/Azure/GCP)
+    │
+    ├── VM #1 (tagged)  ──┐
+    ├── VM #2 (tagged)  ──┼── Auto-discovered by Boundary
+    └── VM #3 (tagged)  ──┘
+                          │
+                          ▼
+                    Boundary Host Catalog
+                          │
+                          ▼
+                User connects via SSH/RDP
+                to the actual VM
+```
+
+This is useful for keeping host lists current, but it's fundamentally different from providing access to cloud consoles themselves. **With Boundary, you can SSH into a Linux server running on AWS -you cannot access the AWS Console to manage that server.**
 
 ## Akeyless Modern PAM: A Unified Approach
 
