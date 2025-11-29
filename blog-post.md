@@ -75,6 +75,47 @@ Akeyless took a different path. Rather than building a single-purpose access pro
 - **Broadest protocol support**  - Native access to SSH, RDP, databases, Kubernetes, web applications, and cloud consoles
 - **Zero infrastructure**  - Fully managed SaaS with nothing to deploy or maintain
 
+### How Akeyless Secure Remote Access Works
+
+Akeyless SRA deploys as part of the Akeyless Gateway -a unified solution consisting of two main components:
+
+1. **Web Application**: Provides browser-based access to internal resources through the SRA Portal. Users connect to SSH terminals, RDP sessions, databases, Kubernetes clusters, and cloud consoles directly from their browser using embedded clients -no local tooling required.
+
+2. **SSH Application**: Enables native CLI access through **Akeyless Connect** for users who prefer command-line workflows. This supports direct SSH connections and SCP file transfers to UNIX-based resources.
+
+**The Zero-Trust Connection Flow:**
+
+```
+User authenticates via SSO (OIDC, SAML, or LDAP)
+                    │
+                    ▼
+    Akeyless validates identity & permissions
+                    │
+                    ▼
+     Gateway retrieves required credentials
+        (static, rotated, or dynamic)
+                    │
+                    ▼
+    Credentials injected into target session
+        (user never sees the password)
+                    │
+                    ▼
+      Session established with full recording
+                    │
+                    ▼
+    On disconnect: credentials auto-rotated
+```
+
+**Key architectural advantages:**
+
+- **Secretless user access**: Users authenticate once via their corporate identity provider. They need only SRA permissions to initiate connections -not underlying secret read access. Akeyless retrieves and injects credentials transparently.
+
+- **Just-in-time credentials**: Dynamic secrets can be created and injected into remote resources on the fly. Combined with automatic post-session rotation, this minimizes the window of credential exposure to near zero.
+
+- **Unified secrets + access**: Because SRA is built into the same platform as secrets management, there's no integration complexity. Rotated secrets, dynamic database credentials, and certificate-based authentication all work seamlessly with remote access.
+
+- **Flexible deployment**: The Gateway can be deployed on-premises, in your cloud VPC, or as a fully managed service -giving you control over where traffic flows while maintaining the zero-knowledge security model.
+
 ## Feature Comparison: The Full Picture
 
 | Capability | Akeyless Modern PAM | Boundary Community | Boundary HCP/Enterprise |
@@ -96,11 +137,13 @@ Akeyless took a different path. Rather than building a single-purpose access pro
 
 ## Why These Differences Matter
 
-### 1. Passwordless Access Should Be Standard, Not Premium
+### 1. Passwordless Access Without Additional Products
 
-With Boundary Community Edition, users receive credentials and must enter them manually -they see the passwords. This "credential brokering" approach defeats a core principle of modern PAM: users should never see or handle privileged credentials.
+Both Akeyless and Boundary (HCP/Enterprise) support credential injection for passwordless access. The difference is what's required to get there.
 
-**Akeyless includes credential injection by default.** Users authenticate once, and Akeyless handles the rest -retrieving credentials, injecting them into sessions, and rotating them afterward. True passwordless access, out of the box.
+With Boundary, credential injection requires integration with HashiCorp Vault for secrets management. That means deploying, configuring, and maintaining a separate product -with its own licensing, upgrades, and operational overhead.
+
+**With Akeyless, credential injection works out of the box.** Secrets management is built into the same platform, so there's no additional product to integrate. Users authenticate once via SSO, and Akeyless handles the rest -retrieving credentials, injecting them into sessions, and rotating them afterward. One platform, one deployment, true passwordless access.
 
 ### 2. Session Recording Across Your Entire Environment
 
